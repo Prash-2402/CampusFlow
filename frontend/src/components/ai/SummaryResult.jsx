@@ -5,46 +5,49 @@ export default function SummaryResult({ summary = [], eventTitle, eventDate }) {
   if (!summary || summary.length === 0) return null;
 
   return (
-    <div className="glass-card p-6 space-y-4 animate-slide-up">
-
+    <div className="bg-white dark:bg-gray-800 p-6 rounded-2xl border border-gray-200 dark:border-gray-700/60 shadow-sm space-y-4 transition-all duration-200">
+      
       {/* Header */}
-      <div className="section-header border-b border-white/[0.05] pb-3">
-        <FileText className="section-header-icon" />
-        Notice Summary
-        <Sparkles className="w-3.5 h-3.5 text-amber-400 ml-1" />
+      <div className="flex items-center gap-2 border-b border-gray-100 dark:border-gray-750 pb-3">
+        <FileText className="w-5 h-5 text-blue-600 dark:text-blue-400" />
+        <h3 className="text-base font-bold text-gray-900 dark:text-gray-100 flex items-center gap-1.5">
+          Notice Summary
+          <Sparkles className="w-4 h-4 text-amber-500" />
+        </h3>
       </div>
 
-      {/* Bullet Points */}
-      <ul className="space-y-2.5">
-        {summary.map((point, idx) => (
-          <li key={idx} className="flex items-start gap-3">
-            <span className="w-5 h-5 rounded-md bg-blue-500/15 border border-blue-500/25 text-blue-400 flex items-center justify-center flex-shrink-0 text-[10px] font-bold mt-0.5">
-              {idx + 1}
+      {/* 3 Animated Bullet Points */}
+      <ul className="space-y-3">
+        {summary.map((point, index) => (
+          <li 
+            key={index} 
+            className="flex items-start gap-3 text-sm text-gray-700 dark:text-gray-300 font-semibold"
+          >
+            <span className="w-6 h-6 rounded-full bg-blue-50 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 flex items-center justify-center flex-shrink-0 text-xs font-bold border border-blue-100 dark:border-blue-900/30">
+              {index + 1}
             </span>
-            <span className="text-sm text-white/65 font-medium leading-relaxed pt-0.5">
-              {point}
-            </span>
+            <span className="pt-0.5 leading-relaxed">{point}</span>
           </li>
         ))}
       </ul>
 
-      {/* Calendar Event Detection */}
+      {/* Extracted Calendar Details Box */}
       {(eventTitle || eventDate) && (
-        <div className="p-4 rounded-xl bg-indigo-500/10 border border-indigo-500/20 space-y-2">
-          <div className="flex items-center gap-1.5">
-            <Calendar className="w-3.5 h-3.5 text-indigo-400" />
-            <span className="text-[10px] font-bold text-indigo-400/70 uppercase tracking-wider">
-              Detected Calendar Event
-            </span>
+        <div className="mt-4 p-4 bg-indigo-50/50 dark:bg-indigo-950/20 border border-indigo-100/50 dark:border-indigo-900/30 rounded-xl space-y-2">
+          <div className="text-[11px] font-bold text-indigo-700 dark:text-indigo-400 uppercase tracking-wider flex items-center gap-1.5">
+            <Calendar className="w-4 h-4" />
+            Detected Calendar Event
           </div>
-          <div className="text-sm font-bold text-indigo-200">
+          
+          <div className="text-sm font-bold text-gray-900 dark:text-gray-100">
             {eventTitle || 'College Event'}
           </div>
+          
           {eventDate && (
-            <div className="text-xs text-indigo-300/50">
-              {new Date(eventDate).toLocaleString(undefined, {
+            <div className="text-xs font-medium text-gray-500 dark:text-gray-400">
+              Date: {new Date(eventDate).toLocaleString(undefined, {
                 dateStyle: 'medium',
-                timeStyle: 'short',
+                timeStyle: 'short'
               })}
             </div>
           )}

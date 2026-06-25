@@ -3,143 +3,129 @@ import { useTasks } from '../hooks/useTasks';
 import TaskCard from '../components/tasks/TaskCard';
 import AddTaskModal from '../components/tasks/AddTaskModal';
 import Spinner from '../components/ui/Spinner';
-import { Plus, ClipboardCheck, Sparkles, ListFilter } from 'lucide-react';
-
-const FILTERS = [
-  { id: 'all',   label: 'All Active' },
-  { id: 'today', label: 'Due Today' },
-  { id: 'week',  label: 'This Week' },
-  { id: 'done',  label: 'Completed' },
-];
+import { Plus, ListFilter, ClipboardCheck, Sparkles } from 'lucide-react';
 
 export default function TasksPage() {
   const { tasks, loading, fetchTasks, createTask, updateTaskStatus, deleteTask } = useTasks();
-  const [activeFilter, setActiveFilter] = useState('all');
+  const [activeFilter, setActiveFilter] = useState('all'); // 'all' | 'today' | 'week' | 'done'
   const [isModalOpen, setIsModalOpen] = useState(false);
 
   useEffect(() => {
     fetchTasks();
   }, [fetchTasks]);
 
-  const isToday = (d) => {
+  // Date filter math utilities
+  const isToday = (deadlineStr) => {
     const today = new Date();
-    const date = new Date(d);
-    return today.getDate() === date.getDate() &&
-           today.getMonth() === date.getMonth() &&
-           today.getFullYear() === date.getFullYear();
+    const date = new Date(deadlineStr);
+    return (
+      today.getDate() === date.getDate() &&
+      today.getMonth() === date.getMonth() &&
+      today.getFullYear() === date.getFullYear()
+    );
   };
 
-  const isThisWeek = (d) => {
-    const diff = Math.ceil((new Date(d) - new Date()) / (1000 * 3600 * 24));
-    return diff >= 0 && diff <= 7;
+  const isThisWeek = (deadlineStr) => {
+    const now = new Date();
+    const date = new Date(deadlineStr);
+    const timeDiff = date.getTime() - now.getTime();
+    const dayDiff = Math.ceil(timeDiff / (1000 * 3600 * 24));
+    return dayDiff >= 0 && dayDiff <= 7;
   };
 
-  const filteredTasks = tasks.filter((t) => {
-    if (activeFilter === 'done') return t.status === 'done';
-    if (t.status === 'done') return false;
-    if (activeFilter === 'today') return isToday(t.deadline);
-    if (activeFilter === 'week') return isThisWeek(t.deadline);
-    return true;
+  const filteredTasks = tasks.filter((task) => {
+    if (activeFilter === 'done') return task.status === 'done';
+    if (task.status === 'done') return false; // Hide completed items on other list tabs
+    if (activeFilter === 'today') return isToday(task.deadline);
+    if (activeFilter === 'week') return isThisWeek(task.deadline);
+    return true; // 'all' showing all active tasks
   });
 
-  const hasNoTasks = tasks.length === 0;
-
-  // Counts per filter for badges
-  const counts = {
-    all:   tasks.filter(t => t.status !== 'done').length,
-    today: tasks.filter(t => isToday(t.deadline) && t.status !== 'done').length,
-    week:  tasks.filter(t => isThisWeek(t.deadline) && t.status !== 'done').length,
-    done:  tasks.filter(t => t.status === 'done').length,
-  };
+  const hasNoTasksInDB = tasks.length === 0;
 
   return (
-    <div className="space-y-6 pb-24 md:pb-6 animate-slide-up">
-
-      {/* Page Header */}
+    <div className="space-y-6 pb-24 md:pb-6">
+      
+      {/* Header controls section */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
-          <div className="flex items-center gap-3 mb-1">
-            <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-blue-500/20 to-indigo-600/20 border border-blue-500/25 flex items-center justify-center">
-              <ClipboardCheck className="w-5 h-5 text-blue-400" />
-            </div>
-            <h1 className="text-2xl font-extrabold text-white tracking-tight">
-              Tasks &amp; Deadlines
-            </h1>
-          </div>
-          <p className="text-sm text-white/35 ml-12">
-            Track assignments, lab submissions, and semester events.
+          <h1 className="text-3xl font-extrabold tracking-tight text-gray-900 dark:text-white flex items-center gap-2">
+            <ClipboardCheck className="w-8 h-8 text-blue-600 dark:text-blue-400" />
+            Tasks & Deadlines
+          </h1>
+          <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
+            Track college assignments, lab submissions, and semester events.
           </p>
         </div>
 
         <button
           type="button"
           onClick={() => setIsModalOpen(true)}
-          className="btn-primary self-start sm:self-auto"
+          className="flex items-center justify-center gap-2 px-5 py-3 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white font-bold rounded-2xl shadow-md shadow-indigo-100 dark:shadow-none hover:shadow-lg transition-all cursor-pointer text-sm"
         >
-          <Plus className="w-4 h-4" />
+          <Plus className="w-5 h-5" />
           Add Task
         </button>
       </div>
 
-      {/* Filter Tabs — only show when there are tasks */}
-      {!hasNoTasks && (
-        <div className="flex items-center gap-2 flex-wrap">
-          <ListFilter className="w-3.5 h-3.5 text-white/25 flex-shrink-0" />
-          {FILTERS.map((tab) => (
+      {/* Filter Tabs */}
+      {!hasNoTasksInDB && (
+        <div className="flex flex-wrap items-center gap-2 border-b border-gray-200 dark:border-gray-800 pb-3">
+          <ListFilter className="w-4 h-4 text-gray-400 mr-2" />
+          {[
+            { id: 'all', label: 'All Active' },
+            { id: 'today', label: 'Due Today' },
+            { id: 'week', label: 'This Week' },
+            { id: 'done', label: 'Completed' }
+          ].map((tab) => (
             <button
               key={tab.id}
               onClick={() => setActiveFilter(tab.id)}
-              className={`filter-tab flex items-center gap-1.5 ${activeFilter === tab.id ? 'active' : ''}`}
+              className={`px-4 py-2 rounded-xl text-xs font-bold transition-all border ${
+                activeFilter === tab.id
+                  ? 'bg-blue-600 border-blue-600 text-white shadow-sm shadow-blue-100 dark:shadow-none'
+                  : 'bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700 text-gray-500 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-750'
+              }`}
             >
               {tab.label}
-              {counts[tab.id] > 0 && (
-                <span className={`text-[10px] font-bold px-1.5 py-0.5 rounded-md ${
-                  activeFilter === tab.id
-                    ? 'bg-blue-500/25 text-blue-300'
-                    : 'bg-white/[0.06] text-white/30'
-                }`}>
-                  {counts[tab.id]}
-                </span>
-              )}
             </button>
           ))}
         </div>
       )}
 
-      {/* Content Area */}
+      {/* Main content viewport */}
       {loading && tasks.length === 0 ? (
-        <div className="flex flex-col items-center justify-center py-24 gap-4">
+        <div className="flex flex-col items-center justify-center py-20">
           <Spinner size="lg" />
-          <p className="text-sm text-white/30 font-medium">Syncing with Supabase...</p>
+          <p className="text-sm text-gray-500 dark:text-gray-400 mt-4 font-medium">Syncing with Supabase...</p>
         </div>
-      ) : hasNoTasks ? (
-        /* Empty state — no tasks at all */
-        <div className="flex flex-col items-center justify-center py-24 px-4 border border-dashed border-white/[0.07] rounded-2xl bg-white/[0.02] text-center">
-          <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-blue-500/15 to-indigo-600/10 border border-blue-500/20 flex items-center justify-center mb-5 shadow-lg shadow-blue-500/10">
-            <Sparkles className="w-8 h-8 text-blue-400" />
+      ) : hasNoTasksInDB ? (
+        /* Ground truth requested empty state for 0 tasks */
+        <div className="flex flex-col items-center justify-center py-20 px-4 border border-dashed border-gray-200 dark:border-gray-700 rounded-3xl bg-white/50 dark:bg-gray-800/30 text-center">
+          <div className="w-16 h-16 rounded-full bg-blue-50 dark:bg-blue-950/20 text-blue-500 flex items-center justify-center border border-blue-200 dark:border-blue-900/30 mb-4">
+            <Sparkles className="w-8 h-8" />
           </div>
-          <h3 className="text-base font-bold text-white/70 mb-2">No tasks yet</h3>
-          <p className="text-sm text-white/35 max-w-sm leading-relaxed mb-6">
-            Add your first deadline to get started. Every task triggers an n8n automation for calendar &amp; WhatsApp.
+          <h3 className="text-lg font-bold text-gray-900 dark:text-gray-150">No tasks found</h3>
+          <p className="text-sm text-gray-500 dark:text-gray-400 mt-2 max-w-sm">
+            You haven't added any tasks yet. Hit '+ Add Task' to get started.
           </p>
           <button
             type="button"
             onClick={() => setIsModalOpen(true)}
-            className="btn-primary"
+            className="mt-6 px-5 py-2.5 bg-blue-50 dark:bg-blue-950/40 text-blue-600 dark:text-blue-400 hover:bg-blue-100 dark:hover:bg-blue-950/60 rounded-xl font-bold text-xs transition"
           >
-            <Plus className="w-4 h-4" />
             Add your first task
           </button>
         </div>
       ) : filteredTasks.length === 0 ? (
-        /* Empty filter match */
-        <div className="flex flex-col items-center justify-center py-16 text-center">
-          <p className="text-white/30 font-semibold text-sm">
+        /* Ground truth requested empty state for 0 filter matches */
+        <div className="flex flex-col items-center justify-center py-20 text-center">
+          <p className="text-gray-500 dark:text-gray-400 font-bold text-base">
             No tasks match this filter.
           </p>
         </div>
       ) : (
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
           {filteredTasks.map((task) => (
             <TaskCard
               key={task.id}
@@ -151,6 +137,7 @@ export default function TasksPage() {
         </div>
       )}
 
+      {/* Add Task Modal overlay mount */}
       <AddTaskModal
         isOpen={isModalOpen}
         onClose={() => setIsModalOpen(false)}

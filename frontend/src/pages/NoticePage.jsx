@@ -110,83 +110,104 @@ export default function NoticePage() {
   };
 
   return (
-    <div className="space-y-6 pb-24 md:pb-6 animate-slide-up">
+    <div className="space-y-6 pb-24 md:pb-6">
       
       {/* Header */}
-      <div className="flex items-center gap-3">
-        <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-blue-500/20 to-indigo-600/20 border border-blue-500/25 flex items-center justify-center">
-          <Sparkles className="w-5 h-5 text-blue-400" />
-        </div>
-        <div>
-          <h1 className="text-2xl font-extrabold text-white tracking-tight">AI Learning Tools</h1>
-          <p className="text-sm text-white/35">Summarize college updates or compile study aids from lecture content.</p>
-        </div>
+      <div>
+        <h1 className="text-3xl font-extrabold tracking-tight text-gray-900 dark:text-white flex items-center gap-2">
+          <Sparkles className="w-8 h-8 text-blue-600 dark:text-blue-400" />
+          AI Learning Tools
+        </h1>
+        <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
+          Summarize college updates or compile study aids from lecture content.
+        </p>
       </div>
 
       {/* Tab Switcher */}
-      <div className="flex bg-white/[0.03] p-1 rounded-xl max-w-xl border border-white/[0.07]">
-        {[{id:'notice',label:'Notice',Icon:Bell},{id:'flashcards',label:'Flashcards',Icon:Library},{id:'quiz',label:'Quiz Mode',Icon:CheckSquare}].map(({id,label,Icon}) => (
-          <button
-            key={id}
-            onClick={() => setActiveTab(id)}
-            className={`flex-1 py-2 rounded-lg text-xs font-semibold flex items-center justify-center gap-1.5 transition-all ${
-              activeTab === id
-                ? 'bg-gradient-to-r from-blue-500/25 to-indigo-500/20 text-white border border-blue-500/25'
-                : 'text-white/35 hover:text-white/55'
-            }`}
-          >
-            <Icon className="w-3.5 h-3.5" />
-            {label}
-          </button>
-        ))}
+      <div className="flex bg-gray-150/70 dark:bg-gray-800 p-1 rounded-2xl max-w-lg border border-gray-200/50 dark:border-gray-700/50">
+        <button
+          onClick={() => setActiveTab('notice')}
+          className={`flex-1 py-2.5 rounded-xl text-xs font-bold flex items-center justify-center gap-2 transition-all ${
+            activeTab === 'notice'
+              ? 'bg-white dark:bg-gray-700 text-blue-600 dark:text-white shadow-sm'
+              : 'text-gray-500 dark:text-gray-400 hover:text-gray-900'
+          }`}
+        >
+          <Bell className="w-4 h-4" />
+          Notice Summarizer
+        </button>
+        <button
+          onClick={() => setActiveTab('flashcards')}
+          className={`flex-1 py-2.5 rounded-xl text-xs font-bold flex items-center justify-center gap-2 transition-all ${
+            activeTab === 'flashcards'
+              ? 'bg-white dark:bg-gray-700 text-blue-600 dark:text-white shadow-sm'
+              : 'text-gray-500 dark:text-gray-400 hover:text-gray-900'
+          }`}
+        >
+          <Library className="w-4 h-4" />
+          Notes Flashcards
+        </button>
+        <button
+          onClick={() => setActiveTab('quiz')}
+          className={`flex-1 py-2.5 rounded-xl text-xs font-bold flex items-center justify-center gap-2 transition-all ${
+            activeTab === 'quiz'
+              ? 'bg-white dark:bg-gray-700 text-blue-600 dark:text-white shadow-sm'
+              : 'text-gray-500 dark:text-gray-400 hover:text-gray-900'
+          }`}
+        >
+          <CheckSquare className="w-4 h-4" />
+          Quiz Mode
+        </button>
       </div>
 
       {/* Tab Content viewport */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 items-start">
         
         {/* Input panel (Left side) */}
-        <div className="glass-card p-6 space-y-4">
+        <div className="bg-white dark:bg-gray-800 rounded-3xl border border-gray-200 dark:border-gray-700/60 p-6 shadow-sm space-y-4">
           
           {activeTab === 'notice' && (
+            /* Notice tab inputs */
             <>
-              <div className="section-header">
-                <FileText className="section-header-icon" />
+              <h2 className="text-base font-bold text-gray-900 dark:text-white flex items-center gap-2">
+                <FileText className="w-4.5 h-4.5 text-blue-600" />
                 Raw Notice Text
-              </div>
+              </h2>
               <textarea
                 placeholder="Paste the official notice received on email or notice board here..."
                 rows={8}
                 value={noticeText}
                 onChange={(e) => setNoticeText(e.target.value)}
-                className="input-premium resize-none"
-              />
+                className="w-full p-4 border border-gray-250 dark:border-gray-705 bg-gray-50/50 dark:bg-gray-900/30 rounded-2xl text-sm placeholder-gray-400 focus:border-blue-500 leading-relaxed font-medium"
+              ></textarea>
               <button
                 type="button"
                 onClick={handleSummarize}
                 disabled={loading}
-                className="btn-primary w-full justify-center disabled:opacity-50"
+                className="w-full py-3 px-4 bg-blue-600 hover:bg-blue-700 text-white rounded-xl font-bold text-sm shadow transition flex items-center justify-center gap-2 cursor-pointer disabled:opacity-50"
               >
-                {loading ? <Spinner size="sm" /> : <><Sparkles className="w-4 h-4" /> Summarize Notice</>}
+                {loading ? <Spinner size="sm" /> : 'Summarize notice'}
               </button>
             </>
           )}
 
           {activeTab === 'flashcards' && (
+            /* Flashcards tab inputs */
             <>
-              <div className="section-header">
-                <Library className="section-header-icon" />
+              <h2 className="text-base font-bold text-gray-900 dark:text-white flex items-center gap-2">
+                <Library className="w-4.5 h-4.5 text-blue-600" />
                 Lecture Study Notes
-              </div>
+              </h2>
               <textarea
                 placeholder="Paste your lecture notes, slides text, or textbook reference sections here..."
                 rows={8}
                 value={lectureNotes}
                 onChange={(e) => setLectureNotes(e.target.value)}
-                className="input-premium resize-none"
-              />
+                className="w-full p-4 border border-gray-250 dark:border-gray-705 bg-gray-50/50 dark:bg-gray-900/30 rounded-2xl text-sm placeholder-gray-400 focus:border-blue-500 leading-relaxed font-medium"
+              ></textarea>
               {notesError && (
-                <p className="text-[11px] font-semibold text-rose-400 flex items-center gap-1">
-                  <AlertTriangle className="w-3 h-3" />
+                <p className="text-xs font-bold text-red-500 flex items-center gap-1">
+                  <AlertTriangle className="w-3.5 h-3.5" />
                   {notesError}
                 </p>
               )}
@@ -194,64 +215,75 @@ export default function NoticePage() {
                 type="button"
                 onClick={handleFlashcards}
                 disabled={loading}
-                className="btn-primary w-full justify-center disabled:opacity-50"
+                className="w-full py-3 px-4 bg-blue-600 hover:bg-blue-700 text-white rounded-xl font-bold text-sm shadow transition flex items-center justify-center gap-2 cursor-pointer disabled:opacity-50"
               >
-                {loading ? <Spinner size="sm" /> : <><Library className="w-4 h-4" /> Generate Flashcards</>}
+                {loading ? <Spinner size="sm" /> : 'Generate Flashcards'}
               </button>
             </>
           )}
 
           {activeTab === 'quiz' && (
+            /* Quiz tab inputs */
             <>
-              <div className="section-header">
-                <Sparkles className="section-header-icon" />
-                AI Study Buddy Quiz
-              </div>
-              <div className="grid grid-cols-2 gap-3">
-                <div>
-                  <label className="label-premium">Subject</label>
+              <h2 className="text-base font-bold text-gray-900 dark:text-white flex items-center gap-2">
+                <Sparkles className="w-4.5 h-4.5 text-blue-600" />
+                AI Study Buddy Quiz Generator
+              </h2>
+              
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-1">
+                  <label className="block text-xs font-bold uppercase tracking-wider text-gray-400">
+                    Subject
+                  </label>
                   <input
                     type="text"
                     placeholder="e.g. Compiler Design"
                     value={quizSubject}
                     onChange={(e) => setQuizSubject(e.target.value)}
-                    className="input-premium"
+                    className="w-full p-3 border border-gray-250 dark:border-gray-700 bg-gray-50/50 dark:bg-gray-900/30 rounded-xl text-sm placeholder-gray-400 focus:border-blue-500 font-semibold"
                   />
                 </div>
-                <div>
-                  <label className="label-premium">Topic</label>
+                <div className="space-y-1">
+                  <label className="block text-xs font-bold uppercase tracking-wider text-gray-400">
+                    Topic
+                  </label>
                   <input
                     type="text"
                     placeholder="e.g. LL(1) Parsers"
                     value={quizTopic}
                     onChange={(e) => setQuizTopic(e.target.value)}
-                    className="input-premium"
+                    className="w-full p-3 border border-gray-250 dark:border-gray-700 bg-gray-50/50 dark:bg-gray-900/30 rounded-xl text-sm placeholder-gray-400 focus:border-blue-500 font-semibold"
                   />
                 </div>
               </div>
-              <div>
-                <label className="label-premium">Lecture Notes</label>
+
+              <div className="space-y-1">
+                <label className="block text-xs font-bold uppercase tracking-wider text-gray-400">
+                  Lecture Study Notes
+                </label>
                 <textarea
-                  placeholder="Paste lecture notes to be quizzed on..."
+                  placeholder="Paste lecture notes or paragraphs containing facts and details you want to be quizzed on..."
                   rows={6}
                   value={quizNotes}
                   onChange={(e) => setQuizNotes(e.target.value)}
-                  className="input-premium resize-none"
-                />
+                  className="w-full p-4 border border-gray-250 dark:border-gray-705 bg-gray-50/50 dark:bg-gray-900/30 rounded-2xl text-sm placeholder-gray-400 focus:border-blue-500 leading-relaxed font-medium"
+                ></textarea>
               </div>
+
               {quizError && (
-                <p className="text-[11px] font-semibold text-rose-400 flex items-center gap-1">
-                  <AlertTriangle className="w-3 h-3" />
+                <p className="text-xs font-bold text-red-500 flex items-center gap-1">
+                  <AlertTriangle className="w-3.5 h-3.5" />
                   {quizError}
                 </p>
               )}
+              
               <button
                 type="button"
                 onClick={handleGenerateQuiz}
                 disabled={loading}
-                className="btn-primary w-full justify-center disabled:opacity-50"
+                className="w-full py-3 px-4 bg-blue-600 hover:bg-blue-700 text-white rounded-xl font-bold text-sm shadow transition flex items-center justify-center gap-2 cursor-pointer disabled:opacity-50"
               >
-                {loading ? <Spinner size="sm" /> : <><Sparkles className="w-4 h-4" /> Generate MCQ Quiz</>}
+                {loading ? <Spinner size="sm" /> : 'Generate Live MCQ Quiz'}
               </button>
             </>
           )}
@@ -271,27 +303,28 @@ export default function NoticePage() {
                   eventDate={summaryData.eventDate}
                 />
 
-                {/* Broadcast panel */}
-                <div className="glass-card p-5 space-y-4">
-                  <div className="section-header">
-                    <Send className="section-header-icon" />
-                    Broadcast via WhatsApp
-                  </div>
+                {/* Recipient broadcasts panel */}
+                <div className="bg-white dark:bg-gray-800 p-6 rounded-3xl border border-gray-250 dark:border-gray-700/60 shadow-sm space-y-4">
+                  <h3 className="text-sm font-bold text-gray-900 dark:text-white">
+                    Broadcast WhatsApp Notification
+                  </h3>
                   <div>
-                    <label className="label-premium">Recipients (one per line, include country code)</label>
+                    <label className="block text-xs font-bold uppercase tracking-wider text-gray-400 mb-1.5">
+                      Recipients (One Phone per line, include country code)
+                    </label>
                     <textarea
                       placeholder="+919876543210&#10;+918765432109"
                       rows={4}
                       value={phoneInput}
                       onChange={(e) => setPhoneInput(e.target.value)}
-                      className="input-premium resize-none text-xs"
-                    />
-                    <span className="text-[10px] text-white/25 mt-1.5 block">
-                      Format: +91XXXXXXXXXX — one number per line
+                      className="w-full p-3 border border-gray-250 dark:border-gray-700 bg-gray-50/50 dark:bg-gray-900/30 rounded-2xl text-xs placeholder-gray-400 focus:border-blue-500 font-semibold"
+                    ></textarea>
+                    <span className="text-[10px] text-gray-400 font-semibold leading-relaxed">
+                      Enter phone numbers of students to notify (one per line, include country code)
                     </span>
                     {phoneError && (
-                      <p className="mt-1.5 text-[11px] font-semibold text-rose-400 flex items-center gap-1">
-                        <AlertTriangle className="w-3 h-3" />
+                      <p className="mt-1.5 text-xs font-bold text-red-500 flex items-center gap-1">
+                        <AlertTriangle className="w-3.5 h-3.5" />
                         {phoneError}
                       </p>
                     )}
@@ -300,30 +333,33 @@ export default function NoticePage() {
                     type="button"
                     onClick={handleBroadcast}
                     disabled={loading}
-                    className="w-full flex items-center justify-center gap-2 py-2.5 px-4 bg-emerald-500/15 hover:bg-emerald-500/25 text-emerald-400 border border-emerald-500/25 rounded-lg font-semibold text-sm transition-all disabled:opacity-50"
+                    className="w-full py-3 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl font-bold text-sm shadow transition flex items-center justify-center gap-2 cursor-pointer disabled:opacity-50"
                   >
                     <Send className="w-4 h-4" />
-                    Broadcast WhatsApp
+                    Broadcast via WhatsApp
                   </button>
                 </div>
               </div>
             ) : (
-              <div className="glass-card p-10 min-h-[300px] flex flex-col justify-center items-center text-center border-dashed">
-                <Bell className="w-10 h-10 text-white/15 mb-3" />
-                <p className="text-sm text-white/30 max-w-xs leading-relaxed">
-                  Paste a college notice to get an AI summary and broadcast it via WhatsApp.
+              /* Notice Empty State */
+              <div className="p-8 text-center border border-dashed border-gray-250 dark:border-gray-750 bg-white/50 dark:bg-gray-800/30 rounded-3xl min-h-[300px] flex flex-col justify-center items-center">
+                <Bell className="w-12 h-12 text-gray-300 dark:text-gray-600 mb-3" />
+                <p className="text-sm font-semibold text-gray-500 dark:text-gray-400 max-w-xs leading-relaxed">
+                  Paste a college notice above to get an AI summary and broadcast it to your study group.
                 </p>
               </div>
             )
           )}
 
           {activeTab === 'flashcards' && (
+            /* Flashcards Study Deck results */
             flashcards.length > 0 ? (
               <FlashcardDeck flashcards={flashcards} />
             ) : (
-              <div className="glass-card p-10 min-h-[300px] flex flex-col justify-center items-center text-center border-dashed">
-                <Library className="w-10 h-10 text-white/15 mb-3" />
-                <p className="text-sm text-white/30 max-w-xs leading-relaxed">
+              /* Flashcard Empty State */
+              <div className="p-8 text-center border border-dashed border-gray-250 dark:border-gray-750 bg-white/50 dark:bg-gray-800/30 rounded-3xl min-h-[300px] flex flex-col justify-center items-center">
+                <Library className="w-12 h-12 text-gray-300 dark:text-gray-600 mb-3" />
+                <p className="text-sm font-semibold text-gray-500 dark:text-gray-400 max-w-xs leading-relaxed">
                   Generate concept cards from lecture slides to study and flip.
                 </p>
               </div>
@@ -331,21 +367,23 @@ export default function NoticePage() {
           )}
 
           {activeTab === 'quiz' && (
+            /* MCQ Quiz results viewport */
             mcqs.length > 0 ? (
               <QuizMode mcqs={mcqs} onRetake={() => setMcqs([])} />
             ) : (
+              /* Quiz Empty State or Loading state */
               loading ? (
-                <div className="glass-card p-10 min-h-[300px] flex flex-col justify-center items-center text-center">
-                  <Spinner size="lg" className="mb-4" />
-                  <p className="text-sm text-white/35 leading-relaxed max-w-xs">
-                    AI study buddy is analyzing notes and generating MCQs... 🎯
+                <div className="p-8 text-center border border-dashed border-gray-250 dark:border-gray-750 bg-white/50 dark:bg-gray-800/30 rounded-3xl min-h-[300px] flex flex-col justify-center items-center">
+                  <Spinner size="lg" className="mb-3" />
+                  <p className="text-sm font-semibold text-gray-500 dark:text-gray-400 leading-relaxed">
+                    AI study buddy is analyzing notes and formulating customized multiple choice questions... 🎯
                   </p>
                 </div>
               ) : (
-                <div className="glass-card p-10 min-h-[300px] flex flex-col justify-center items-center text-center border-dashed">
-                  <CheckSquare className="w-10 h-10 text-white/15 mb-3" />
-                  <p className="text-sm text-white/30 max-w-xs leading-relaxed">
-                    Fill out the quiz generator on the left to start an interactive MCQ session.
+                <div className="p-8 text-center border border-dashed border-gray-250 dark:border-gray-750 bg-white/50 dark:bg-gray-800/30 rounded-3xl min-h-[300px] flex flex-col justify-center items-center">
+                  <CheckSquare className="w-12 h-12 text-gray-300 dark:text-gray-600 mb-3" />
+                  <p className="text-sm font-semibold text-gray-500 dark:text-gray-400 max-w-xs leading-relaxed">
+                    Fill out the generator options on the left to start a customized, interactive live quiz session.
                   </p>
                 </div>
               )

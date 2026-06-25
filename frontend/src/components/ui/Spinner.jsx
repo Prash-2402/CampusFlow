@@ -1,18 +1,10 @@
 import React from 'react';
 
-const sizes = {
-  xs: 'w-3 h-3 border',
-  sm: 'w-5 h-5 border-2',
-  md: 'w-8 h-8 border-2',
-  lg: 'w-12 h-12 border-3',
-};
-
-export default function Spinner({ size = 'md', className = '' }) {
+export function Spinner({ size = 'md' }) {
+  const sizes = { sm: 'h-4 w-4', md: 'h-6 w-6', lg: 'h-8 w-8' };
   return (
-    <div
-      className={`${sizes[size]} rounded-full border-white/10 border-t-blue-500 animate-spin ${className}`}
-      role="status"
-      aria-label="Loading"
-    />
+    <div className={`${sizes[size]} animate-spin rounded-full border-2 border-gray-300 border-t-blue-600`} />
   );
 }
+
+export default Spinner;

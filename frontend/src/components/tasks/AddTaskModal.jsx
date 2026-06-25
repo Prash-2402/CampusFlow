@@ -1,7 +1,7 @@
 import React from 'react';
 import { useForm } from 'react-hook-form';
 import { useAuth } from '../../context/AuthContext';
-import { X, Calendar, MessageSquare, AlertTriangle, Plus } from 'lucide-react';
+import { X, Calendar, MessageSquare, AlertTriangle } from 'lucide-react';
 
 export default function AddTaskModal({ isOpen, onClose, onAdd }) {
   const { user } = useAuth();
@@ -11,14 +11,14 @@ export default function AddTaskModal({ isOpen, onClose, onAdd }) {
     register,
     handleSubmit,
     reset,
-    formState: { errors, isSubmitting }
+    formState: { errors }
   } = useForm({
     defaultValues: {
       title: '',
       subject: '',
       deadline: '',
       add_to_calendar: true,
-      whatsapp_reminder_offset: '24'
+      whatsapp_reminder: true // UI only, backend automates this by design
     }
   });
 
@@ -26,161 +26,154 @@ export default function AddTaskModal({ isOpen, onClose, onAdd }) {
 
   const onSubmit = async (data) => {
     try {
-      const deadlineDate = new Date(data.deadline);
-      const offsetHours = parseInt(data.whatsapp_reminder_offset, 10);
-      const reminderDate = new Date(deadlineDate.getTime() - offsetHours * 60 * 60 * 1000);
-
-      await onAdd({
+      const payload = {
         title: data.title,
         subject: data.subject,
-        deadline: deadlineDate.toISOString(),
-        reminder_time: reminderDate.toISOString(),
-        add_to_calendar: data.add_to_calendar,
-      });
-
+        deadline: new Date(data.deadline).toISOString(),
+        add_to_calendar: data.add_to_calendar
+      };
+      
+      await onAdd(payload);
       reset();
       onClose();
     } catch (err) {
-      // Errors handled by parent hook via toast
+      // Errors handled by parent hook toast
     }
   };
 
   return (
-    <div className="modal-overlay" onClick={(e) => { if (e.target === e.currentTarget) onClose(); }}>
-      <div className="modal-panel animate-scale-in" onClick={(e) => e.stopPropagation()}>
-
-        {/* Header */}
-        <div className="flex items-center justify-between px-6 py-4 border-b border-white/[0.07]">
-          <div className="flex items-center gap-2.5">
-            <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-blue-500/20 to-indigo-600/20 border border-blue-500/25 flex items-center justify-center">
-              <Plus className="w-4 h-4 text-blue-400" />
-            </div>
-            <div>
-              <h2 className="text-sm font-bold text-white">Add Task / Deadline</h2>
-              <p className="text-[10px] text-white/30">Triggers n8n calendar + WhatsApp automation</p>
-            </div>
-          </div>
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
+      <div className="bg-white dark:bg-gray-850 rounded-3xl border border-gray-150 dark:border-gray-800 shadow-2xl max-w-md w-full overflow-hidden transition-all transform animate-in fade-in zoom-in-95 duration-150">
+        
+        {/* Modal Header */}
+        <div className="flex items-center justify-between px-6 py-4 border-b border-gray-150 dark:border-gray-800 bg-gray-50/50 dark:bg-gray-800/50">
+          <h2 className="text-lg font-bold text-gray-900 dark:text-gray-100 flex items-center gap-2">
+            <span>🎓</span> Add Task or Deadline
+          </h2>
           <button
             type="button"
             onClick={onClose}
-            className="p-1.5 rounded-lg text-white/30 hover:text-white/60 hover:bg-white/[0.06] transition-all border border-transparent hover:border-white/[0.08]"
+            className="p-1 rounded-xl text-gray-400 hover:text-gray-600 dark:hover:text-gray-200 hover:bg-gray-150 dark:hover:bg-gray-800 transition-all"
           >
-            <X className="w-4 h-4" />
+            <X className="w-5 h-5" />
           </button>
         </div>
 
-        {/* Body */}
+        {/* Modal Body */}
         {subjects.length === 0 ? (
           <div className="p-6 text-center space-y-4">
-            <div className="w-12 h-12 rounded-xl bg-amber-500/10 border border-amber-500/20 flex items-center justify-center mx-auto">
-              <AlertTriangle className="w-6 h-6 text-amber-400" />
+            <div className="w-12 h-12 rounded-full bg-amber-50 dark:bg-amber-950/20 text-amber-500 flex items-center justify-center mx-auto border border-amber-200 dark:border-amber-900/30">
+              <AlertTriangle className="w-6 h-6" />
             </div>
             <div>
-              <h3 className="text-sm font-bold text-white/80">No Subjects Configured</h3>
-              <p className="text-xs text-white/40 mt-1 leading-relaxed">
-                Your profile has no subjects. Please register with active B.Tech subjects.
+              <h3 className="text-sm font-bold text-gray-900 dark:text-gray-100">No Subjects Linked</h3>
+              <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
+                Your profile has no subjects listed. Please register an account with active B.Tech subjects.
               </p>
             </div>
-            <button type="button" onClick={onClose} className="btn-secondary text-xs px-4 py-2">
-              Close
+            <button
+              type="button"
+              onClick={onClose}
+              className="px-4 py-2 bg-gray-105 hover:bg-gray-150 dark:bg-gray-800 dark:hover:bg-gray-700 text-gray-700 dark:text-gray-300 font-bold rounded-xl text-xs transition"
+            >
+              Close Window
             </button>
           </div>
         ) : (
           <form onSubmit={handleSubmit(onSubmit)} className="p-6 space-y-4">
-
             {/* Title */}
             <div>
-              <label className="label-premium">Task Title</label>
+              <label className="block text-xs font-bold uppercase tracking-wider text-gray-500 dark:text-gray-400 mb-1.5">
+                Task Title
+              </label>
               <input
                 type="text"
-                placeholder="e.g. DBMS Lab Assignment 2"
-                className="input-premium"
+                placeholder="DBMS Lab Assignment 2"
+                className="w-full px-4 py-2.5 rounded-xl border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 placeholder-gray-400 focus:border-blue-500 text-sm"
                 {...register('title', { required: 'Task title is required' })}
               />
               {errors.title && (
-                <p className="mt-1.5 text-[11px] font-semibold text-rose-400">{errors.title.message}</p>
+                <p className="mt-1 text-xs font-bold text-red-500">{errors.title.message}</p>
               )}
             </div>
 
-            {/* Subject */}
+            {/* Subject Select */}
             <div>
-              <label className="label-premium">Subject</label>
+              <label className="block text-xs font-bold uppercase tracking-wider text-gray-500 dark:text-gray-400 mb-1.5">
+                Subject
+              </label>
               <select
-                className="input-premium"
-                style={{ colorScheme: 'dark' }}
-                {...register('subject', { required: 'Please select a subject' })}
+                className="w-full px-4 py-2.5 rounded-xl border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 focus:border-blue-500 text-sm"
+                {...register('subject', { required: 'Please choose a subject' })}
               >
-                <option value="" style={{ background: '#0F1629' }}>Choose subject</option>
+                <option value="">Choose subject</option>
                 {subjects.map((sub) => (
-                  <option key={sub} value={sub} style={{ background: '#0F1629' }}>{sub}</option>
+                  <option key={sub} value={sub}>
+                    {sub}
+                  </option>
                 ))}
               </select>
               {errors.subject && (
-                <p className="mt-1.5 text-[11px] font-semibold text-rose-400">{errors.subject.message}</p>
+                <p className="mt-1 text-xs font-bold text-red-500">{errors.subject.message}</p>
               )}
             </div>
 
-            {/* Deadline */}
+            {/* Deadline Date Picker */}
             <div>
-              <label className="label-premium">Deadline Date &amp; Time</label>
+              <label className="block text-xs font-bold uppercase tracking-wider text-gray-500 dark:text-gray-400 mb-1.5">
+                Deadline Date & Time
+              </label>
               <input
                 type="datetime-local"
-                className="input-premium"
-                style={{ colorScheme: 'dark' }}
-                {...register('deadline', { required: 'Deadline is required' })}
+                className="w-full px-4 py-2.5 rounded-xl border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 focus:border-blue-500 text-sm"
+                {...register('deadline', { required: 'Deadline date is required' })}
               />
               {errors.deadline && (
-                <p className="mt-1.5 text-[11px] font-semibold text-rose-400">{errors.deadline.message}</p>
+                <p className="mt-1 text-xs font-bold text-red-500">{errors.deadline.message}</p>
               )}
             </div>
 
-            {/* WhatsApp Reminder */}
-            <div>
-              <label className="label-premium flex items-center gap-1.5">
-                <MessageSquare className="w-3 h-3 text-emerald-400" />
-                WhatsApp Reminder
+            {/* Toggles */}
+            <div className="space-y-2 pt-2">
+              <label className="flex items-center gap-3 cursor-pointer">
+                <input
+                  type="checkbox"
+                  className="w-4.5 h-4.5 text-blue-600 border-gray-300 rounded focus:ring-blue-500 dark:bg-gray-800 dark:border-gray-700"
+                  {...register('add_to_calendar')}
+                />
+                <span className="text-xs font-semibold text-gray-700 dark:text-gray-300 flex items-center gap-1.5">
+                  <Calendar className="w-4 h-4 text-blue-500" />
+                  Add to Google Calendar
+                </span>
               </label>
-              <select
-                className="input-premium"
-                style={{ colorScheme: 'dark' }}
-                {...register('whatsapp_reminder_offset', { required: true })}
-              >
-                <option value="24" style={{ background: '#0F1629' }}>24 hours before</option>
-                <option value="12" style={{ background: '#0F1629' }}>12 hours before</option>
-                <option value="6" style={{ background: '#0F1629' }}>6 hours before</option>
-                <option value="1" style={{ background: '#0F1629' }}>1 hour before</option>
-                <option value="0" style={{ background: '#0F1629' }}>At deadline time</option>
-              </select>
+
+              <label className="flex items-center gap-3 cursor-pointer">
+                <input
+                  type="checkbox"
+                  className="w-4.5 h-4.5 text-emerald-600 border-gray-300 rounded focus:ring-emerald-500 dark:bg-gray-800 dark:border-gray-700"
+                  {...register('whatsapp_reminder')}
+                />
+                <span className="text-xs font-semibold text-gray-700 dark:text-gray-300 flex items-center gap-1.5">
+                  <MessageSquare className="w-4 h-4 text-emerald-500" />
+                  Send WhatsApp reminder (24h before)
+                </span>
+              </label>
             </div>
 
-            {/* Calendar Toggle */}
-            <label className="flex items-center gap-3 cursor-pointer p-3 rounded-xl border border-white/[0.06] bg-white/[0.02] hover:bg-white/[0.04] transition-all">
-              <input
-                type="checkbox"
-                className="w-4 h-4 rounded accent-blue-500"
-                {...register('add_to_calendar')}
-              />
-              <div className="flex items-center gap-2">
-                <Calendar className="w-4 h-4 text-blue-400" />
-                <span className="text-xs font-semibold text-white/70">Add to Google Calendar</span>
-              </div>
-            </label>
-
-            {/* Actions */}
-            <div className="flex gap-3 pt-2">
+            {/* Form Actions */}
+            <div className="flex gap-3 pt-4">
               <button
                 type="button"
                 onClick={onClose}
-                className="btn-secondary flex-1 justify-center"
+                className="flex-1 py-3 px-4 bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-750 font-bold rounded-xl text-sm transition-all"
               >
                 Cancel
               </button>
               <button
                 type="submit"
-                disabled={isSubmitting}
-                className="btn-primary flex-1 justify-center disabled:opacity-50"
+                className="flex-1 py-3 px-4 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white font-bold rounded-xl text-sm transition-all shadow-md shadow-indigo-100 dark:shadow-none cursor-pointer"
               >
-                {isSubmitting ? 'Creating...' : 'Create Task'}
+                Create Task
               </button>
             </div>
           </form>

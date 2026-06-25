@@ -1,208 +1,51 @@
 import React from 'react';
-import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
-import { useAuth } from './context/AuthContext';
-import LoginPage from './pages/LoginPage';
+import { BrowserRouter as Router, Routes, Route, Navigate, useLocation } from 'react-router-dom';
+import IntroPage from './pages/IntroPage';
+import OnboardingPage from './pages/OnboardingPage';
 import DashboardPage from './pages/DashboardPage';
-import TasksPage from './pages/TasksPage';
-import NoticePage from './pages/NoticePage';
-import AttendancePage from './pages/AttendancePage';
+import AcademicsPage from './pages/AcademicsPage';
+import CareerPage from './pages/CareerPage';
+import CopilotPage from './pages/CopilotPage';
 import AutomationsPage from './pages/AutomationsPage';
-import ChatHubPage from './pages/ChatHubPage';
-import BrainSpacePage from './pages/BrainSpacePage';
-import PlacementPage from './pages/PlacementPage';
-import StudyGroupsPage from './pages/StudyGroupsPage';
-import DeadlinePlannerPage from './pages/DeadlinePlannerPage';
-import KnowledgePage from './pages/KnowledgePage';
-import Navbar from './components/layout/Navbar';
-import Sidebar from './components/layout/Sidebar';
-import Spinner from './components/ui/Spinner';
+import LoginPage from './pages/LoginPage';
+import RegisterPage from './pages/RegisterPage';
 import { Toaster } from 'react-hot-toast';
 
-// Intercepts and guards routes when authentication session is not active
-const ProtectedRoute = ({ children }) => {
-  const { token, loading } = useAuth();
+import { AnimatePresence } from 'framer-motion';
+import PageTransition from './components/layout/PageTransition';
 
-  if (loading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-slate-50 dark:bg-[#0F172A]">
-        <div className="flex flex-col items-center gap-4">
-          <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-blue-500 to-indigo-600 flex items-center justify-center shadow-lg shadow-blue-500/25">
-            <span className="text-white font-black text-base">CF</span>
-          </div>
-          <Spinner size="md" />
-          <p className="text-xs text-slate-400 dark:text-slate-500 font-medium">Loading CampusFlow...</p>
-        </div>
-      </div>
-    );
-  }
-
-  if (!token) {
-    return <Navigate to="/login" replace />;
-  }
-
-  return children;
-};
-
-// Layout structure featuring fixed left-sidebar and responsive content body
-const Layout = ({ children }) => {
+function AnimatedRoutes() {
+  const location = useLocation();
+  
   return (
-    <div className="flex min-h-screen bg-slate-50 dark:bg-[#0F172A] text-slate-900 dark:text-slate-100">
-      <Sidebar />
-      <div className="flex-1 flex flex-col min-w-0 overflow-hidden">
-        <Navbar />
-        <main className="flex-1 p-4 md:p-6 lg:p-8 overflow-y-auto max-w-screen-xl w-full mx-auto animate-fade-in">
-          {children}
-        </main>
-      </div>
-    </div>
+    <AnimatePresence mode="wait">
+      <Routes location={location} key={location.pathname}>
+        <Route path="/" element={<PageTransition><IntroPage /></PageTransition>} />
+        <Route path="/login" element={<PageTransition><LoginPage /></PageTransition>} />
+        <Route path="/register" element={<PageTransition><RegisterPage /></PageTransition>} />
+        <Route path="/onboarding" element={<PageTransition><OnboardingPage /></PageTransition>} />
+        <Route path="/dashboard" element={<PageTransition><DashboardPage /></PageTransition>} />
+        <Route path="/academics" element={<PageTransition><AcademicsPage /></PageTransition>} />
+        <Route path="/career" element={<PageTransition><CareerPage /></PageTransition>} />
+        <Route path="/copilot" element={<PageTransition><CopilotPage /></PageTransition>} />
+        <Route path="/automations" element={<PageTransition><AutomationsPage /></PageTransition>} />
+        <Route path="*" element={<Navigate to="/dashboard" replace />} />
+      </Routes>
+    </AnimatePresence>
   );
-};
+}
 
 export default function App() {
-  const { token } = useAuth();
-
   return (
     <Router>
       <Toaster 
-        position="top-right" 
+        position="bottom-right" 
         toastOptions={{
-          style: {
-            background: '#0F1629',
-            color: '#F1F5F9',
-            border: '1px solid rgba(255,255,255,0.1)',
-            borderRadius: '12px',
-            fontSize: '13px',
-            fontFamily: 'Inter, sans-serif',
-            fontWeight: '500',
-            boxShadow: '0 8px 32px rgba(0,0,0,0.3)',
-          },
-          duration: 4000,
-          success: {
-            iconTheme: { primary: '#34D399', secondary: '#0F1629' },
-          },
-          error: {
-            iconTheme: { primary: '#F87171', secondary: '#0F1629' },
-          },
+          className: 'bg-surface/80 backdrop-blur-xl text-primary border border-white/10 shadow-[0_8px_32px_rgba(0,0,0,0.1)] rounded-[1.25rem]',
+          duration: 4000
         }} 
       />
-      <Routes>
-        <Route 
-          path="/login" 
-          element={token ? <Navigate to="/dashboard" replace /> : <LoginPage />} 
-        />
-        <Route 
-          path="/dashboard" 
-          element={
-            <ProtectedRoute>
-              <Layout>
-                <DashboardPage />
-              </Layout>
-            </ProtectedRoute>
-          } 
-        />
-        <Route 
-          path="/tasks" 
-          element={
-            <ProtectedRoute>
-              <Layout>
-                <TasksPage />
-              </Layout>
-            </ProtectedRoute>
-          } 
-        />
-        <Route 
-          path="/notice" 
-          element={
-            <ProtectedRoute>
-              <Layout>
-                <NoticePage />
-              </Layout>
-            </ProtectedRoute>
-          } 
-        />
-        <Route 
-          path="/attendance" 
-          element={
-            <ProtectedRoute>
-              <Layout>
-                <AttendancePage />
-              </Layout>
-            </ProtectedRoute>
-          } 
-        />
-        <Route 
-          path="/automations" 
-          element={
-            <ProtectedRoute>
-              <Layout>
-                <AutomationsPage />
-              </Layout>
-            </ProtectedRoute>
-          } 
-        />
-        <Route 
-          path="/chat" 
-          element={
-            <ProtectedRoute>
-              <Layout>
-                <ChatHubPage />
-              </Layout>
-            </ProtectedRoute>
-          } 
-        />
-        <Route 
-          path="/brainspace" 
-          element={
-            <ProtectedRoute>
-              <Layout>
-                <BrainSpacePage />
-              </Layout>
-            </ProtectedRoute>
-          } 
-        />
-        <Route 
-          path="/placement" 
-          element={
-            <ProtectedRoute>
-              <Layout>
-                <PlacementPage />
-              </Layout>
-            </ProtectedRoute>
-          } 
-        />
-        <Route 
-          path="/study-groups" 
-          element={
-            <ProtectedRoute>
-              <Layout>
-                <StudyGroupsPage />
-              </Layout>
-            </ProtectedRoute>
-          } 
-        />
-        <Route 
-          path="/deadline-planner" 
-          element={
-            <ProtectedRoute>
-              <Layout>
-                <DeadlinePlannerPage />
-              </Layout>
-            </ProtectedRoute>
-          } 
-        />
-        <Route 
-          path="/knowledge" 
-          element={
-            <ProtectedRoute>
-              <Layout>
-                <KnowledgePage />
-              </Layout>
-            </ProtectedRoute>
-          } 
-        />
-        <Route path="/" element={<Navigate to={token ? "/dashboard" : "/login"} replace />} />
-        <Route path="*" element={<Navigate to="/" replace />} />
-      </Routes>
+      <AnimatedRoutes />
     </Router>
   );
 }

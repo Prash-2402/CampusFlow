@@ -1,29 +1,20 @@
 import React, { useEffect, useState } from 'react';
 import { Sun, Moon } from 'lucide-react';
 
-// Apply dark mode immediately before React hydration to prevent FOUC
-// The HTML already has class="dark" as default
-function getInitialDark() {
-  if (typeof window === 'undefined') return true;
-  const saved = localStorage.getItem('campusflow-theme');
-  // Default to dark unless explicitly set to light
-  return saved !== 'light';
-}
-
 export default function DarkModeToggle() {
-  const [isDark, setIsDark] = useState(getInitialDark);
+  const [isDark, setIsDark] = useState(false);
 
+  // Sync state with HTML class on component mount
   useEffect(() => {
-    // Sync the HTML class with stored preference on mount
-    const saved = localStorage.getItem('campusflow-theme');
-    if (saved === 'light') {
+    const savedTheme = localStorage.getItem('campusflow-theme');
+    const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+    
+    if (savedTheme === 'dark' || (!savedTheme && prefersDark)) {
+      document.documentElement.classList.add('dark');
+      setIsDark(true);
+    } else {
       document.documentElement.classList.remove('dark');
       setIsDark(false);
-    } else {
-      // Default to dark
-      document.documentElement.classList.add('dark');
-      if (!saved) localStorage.setItem('campusflow-theme', 'dark');
-      setIsDark(true);
     }
   }, []);
 
@@ -43,13 +34,10 @@ export default function DarkModeToggle() {
     <button
       type="button"
       onClick={toggleTheme}
-      className="p-2 rounded-lg text-slate-500 hover:text-slate-805 hover:bg-slate-100 dark:text-slate-400 dark:hover:text-slate-200 dark:hover:bg-slate-800 transition-all border border-transparent"
-      aria-label="Toggle theme"
+      className="p-2 rounded-xl bg-gray-100 hover:bg-gray-200 dark:bg-gray-850 dark:hover:bg-gray-800 text-gray-600 dark:text-gray-300 transition-all border border-gray-200 dark:border-gray-700/50"
+      aria-label="Toggle Dark Mode"
     >
-      {isDark
-        ? <Sun className="w-4 h-4 text-amber-500" />
-        : <Moon className="w-4 h-4 text-indigo-500" />
-      }
+      {isDark ? <Sun className="w-5 h-5 text-amber-500" /> : <Moon className="w-5 h-5 text-indigo-500" />}
     </button>
   );
 }

@@ -1,329 +1,137 @@
 import React, { useState } from 'react';
-import { useForm } from 'react-hook-form';
+import { motion } from 'framer-motion';
+import { useNavigate, Link } from 'react-router-dom';
+import { Mail, Lock, ArrowRight, Loader2 } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
-import { useNavigate } from 'react-router-dom';
 import toast from 'react-hot-toast';
-import Spinner from '../components/ui/Spinner';
-import { LogIn, UserPlus, Zap, MessageSquare, Calendar, Brain } from 'lucide-react';
-
-const FEATURES = [
-  { icon: MessageSquare, label: 'WhatsApp Reminders', desc: 'Automated deadline alerts', color: 'text-emerald-400' },
-  { icon: Calendar, label: 'Google Calendar', desc: 'Auto event creation', color: 'text-blue-400' },
-  { icon: Brain, label: 'AI Study Buddy', desc: 'MCQs & flashcards', color: 'text-violet-400' },
-  { icon: Zap, label: 'n8n Automations', desc: 'Full pipeline control', color: 'text-amber-400' },
-];
 
 export default function LoginPage() {
-  const [activeTab, setActiveTab] = useState('login');
-  const { login, register, loading } = useAuth();
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  
+  const { login } = useAuth();
   const navigate = useNavigate();
 
-  const {
-    register: registerLogin,
-    handleSubmit: handleLoginSubmit,
-    formState: { errors: loginErrors },
-  } = useForm();
-
-  const {
-    register: registerSignUp,
-    handleSubmit: handleSignUpSubmit,
-    formState: { errors: signUpErrors },
-  } = useForm();
-
-  const onLoginSubmit = async (data) => {
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    setIsSubmitting(true);
     try {
-      await login(data.email, data.password);
-      toast.success('Welcome back! 🎓');
+      await login(email, password);
+      toast.success('Welcome back!');
       navigate('/dashboard');
     } catch (err) {
-      toast.error(err.response?.data?.error || 'Login failed. Check your credentials.');
-    }
-  };
-
-  const onSignUpSubmit = async (data) => {
-    const parsedSubjects = data.subjects
-      .split(',')
-      .map((s) => s.trim())
-      .filter(Boolean);
-
-    if (parsedSubjects.length === 0) {
-      toast.error('Please enter at least one subject.');
-      return;
-    }
-
-    try {
-      await register({
-        name: data.name,
-        branch: data.branch,
-        year: parseInt(data.year, 10),
-        phone: data.phone,
-        subjects: parsedSubjects,
-        email: data.email,
-        password: data.password,
-        google_email: data.google_email || null,
-      });
-      toast.success('Welcome to CampusFlow! 🚀');
-      navigate('/dashboard');
-    } catch (err) {
-      toast.error(err.response?.data?.error || 'Registration failed. Check your inputs.');
+      console.error(err);
+      toast.error(err.response?.data?.error || 'Failed to login. Please check your credentials.');
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
   return (
-    <div className="min-h-screen bg-slate-50 dark:bg-[#0F172A] flex">
+    <div className="min-h-screen bg-primary flex flex-col items-center justify-center relative overflow-hidden font-sans text-primary">
+      {/* Background elements */}
+      <div className="absolute inset-0 pointer-events-none opacity-10"
+           style={{
+             backgroundImage: 'linear-gradient(var(--border-color) 1px, transparent 1px), linear-gradient(90deg, var(--border-color) 1px, transparent 1px)',
+             backgroundSize: '40px 40px',
+             backgroundPosition: 'center center'
+           }}
+      />
       
-      {/* Left Panel — Branding */}
-      <div className="hidden lg:flex flex-col justify-center px-16 flex-1 relative bg-slate-100 dark:bg-slate-900">
-        
-        <div className="relative z-10 max-w-md">
-          {/* Logo */}
-          <div className="flex items-center gap-3 mb-10">
-            <div className="w-12 h-12 rounded-2xl bg-blue-600 flex items-center justify-center shadow-md">
-              <span className="text-white font-black text-xl">CF</span>
-            </div>
-            <span className="text-2xl font-extrabold text-slate-800 dark:text-white">CampusFlow</span>
-          </div>
+      <motion.div 
+        className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] rounded-full blur-[120px] pointer-events-none"
+        style={{ backgroundColor: 'var(--accent-primary)', opacity: 0.15 }}
+        animate={{ scale: [1, 1.1, 1] }}
+        transition={{ duration: 8, repeat: Infinity, ease: "easeInOut" }}
+      />
 
-          <h1 className="text-4xl font-black text-slate-900 dark:text-white leading-tight tracking-tight mb-4">
-            Your academic life,
-            <br />
-            <span className="text-blue-600 dark:text-blue-500">automated.</span>
-          </h1>
-          <p className="text-base text-slate-500 dark:text-slate-400 leading-relaxed mb-10">
-            AI-powered student productivity platform for B.Tech students. Track deadlines, get WhatsApp reminders, and never miss a submission.
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.6, ease: [0.16, 1, 0.3, 1] }}
+        className="z-10 w-full max-w-md p-8 md:p-10 rounded-[2rem] shadow-2xl backdrop-blur-xl border relative"
+        style={{ backgroundColor: 'var(--bg-surface)', borderColor: 'var(--border-color)' }}
+      >
+        <div className="text-center mb-8">
+          <motion.div
+            initial={{ scale: 0.9, opacity: 0 }}
+            animate={{ scale: 1, opacity: 1 }}
+            transition={{ delay: 0.2, duration: 0.5 }}
+            className="text-3xl font-bold tracking-tight mb-2 text-primary"
+          >
+            Welcome Back
+          </motion.div>
+          <p className="text-secondary text-sm">
+            Enter your credentials to access your workspace.
           </p>
-
-          {/* Feature pills */}
-          <div className="space-y-3">
-            {FEATURES.map(({ icon: Icon, label, desc, color }) => (
-              <div key={label} className="flex items-center gap-4 p-3 rounded-xl bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700">
-                <div className="w-9 h-9 rounded-lg bg-slate-50 dark:bg-slate-700 border border-slate-200 dark:border-slate-600 flex items-center justify-center flex-shrink-0">
-                  <Icon className={`w-4 h-4 ${color}`} />
-                </div>
-                <div>
-                  <div className="text-xs font-bold text-slate-800 dark:text-slate-200">{label}</div>
-                  <div className="text-[11px] text-slate-500 dark:text-slate-400">{desc}</div>
-                </div>
-              </div>
-            ))}
-          </div>
-
-          <div className="mt-8 text-[11px] text-slate-400 dark:text-slate-500 font-medium">
-            🎓 CampusAI Hackathon 2025 · Built for B.Tech Students
-          </div>
         </div>
-      </div>
 
-      {/* Right Panel — Auth Form */}
-      <div className="flex-1 lg:max-w-md flex flex-col justify-center p-6 md:p-10 relative">
-        <div className="absolute inset-0 bg-white dark:bg-[#0F172A] lg:border-l lg:border-slate-200 dark:lg:border-slate-800" />
-        
-        <div className="relative z-10 w-full max-w-sm mx-auto">
-          
-          {/* Mobile Logo */}
-          <div className="flex items-center gap-2.5 mb-8 lg:hidden">
-            <div className="w-9 h-9 rounded-xl bg-blue-600 flex items-center justify-center shadow-md">
-              <span className="text-white font-black text-sm">CF</span>
+        <form onSubmit={handleSubmit} className="space-y-5">
+          <div className="space-y-2">
+            <label className="text-xs font-semibold uppercase tracking-wider text-secondary ml-1">Email</label>
+            <div className="relative group">
+              <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
+                <Mail size={18} className="text-secondary group-focus-within:text-accentPrimary transition-colors" />
+              </div>
+              <input
+                type="email"
+                required
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                className="w-full bg-soft border border-borderColor text-primary rounded-xl py-3.5 pl-11 pr-4 outline-none focus:border-accentPrimary focus:ring-1 focus:ring-accentPrimary transition-all placeholder:text-secondary/50"
+                placeholder="name@university.edu"
+              />
             </div>
-            <span className="text-xl font-extrabold text-slate-800 dark:text-white">CampusFlow</span>
           </div>
 
-          <div className="mb-6">
-            <h2 className="text-2xl font-bold text-slate-900 dark:text-white tracking-tight">
-              {activeTab === 'login' ? 'Welcome back' : 'Create account'}
-            </h2>
-            <p className="text-sm text-slate-500 dark:text-slate-400 mt-1">
-              {activeTab === 'login'
-                ? 'Access your academic productivity dashboard.'
-                : 'Set up WhatsApp and Calendar automations.'}
-            </p>
+          <div className="space-y-2">
+            <div className="flex justify-between items-center ml-1">
+              <label className="text-xs font-semibold uppercase tracking-wider text-secondary">Password</label>
+              <a href="#" className="text-xs hover:underline" style={{ color: 'var(--accent-primary)' }}>Forgot?</a>
+            </div>
+            <div className="relative group">
+              <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
+                <Lock size={18} className="text-secondary group-focus-within:text-accentPrimary transition-colors" />
+              </div>
+              <input
+                type="password"
+                required
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                className="w-full bg-soft border border-borderColor text-primary rounded-xl py-3.5 pl-11 pr-4 outline-none focus:border-accentPrimary focus:ring-1 focus:ring-accentPrimary transition-all placeholder:text-secondary/50"
+                placeholder="••••••••"
+              />
+            </div>
           </div>
 
-          {/* Tab switcher */}
-          <div className="flex bg-slate-100 dark:bg-slate-800 p-1 rounded-xl border border-slate-200 dark:border-slate-700 mb-6">
-            <button
-              type="button"
-              onClick={() => setActiveTab('login')}
-              className={`flex-1 py-2 rounded-lg text-xs font-semibold flex items-center justify-center gap-1.5 transition-all ${
-                activeTab === 'login'
-                  ? 'bg-white dark:bg-slate-700 text-blue-600 dark:text-white border border-slate-200 dark:border-slate-600 shadow-sm'
-                  : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200'
-              }`}
-            >
-              <LogIn className="w-3.5 h-3.5" />
-              Log In
-            </button>
-            <button
-              type="button"
-              onClick={() => setActiveTab('register')}
-              className={`flex-1 py-2 rounded-lg text-xs font-semibold flex items-center justify-center gap-1.5 transition-all ${
-                activeTab === 'register'
-                  ? 'bg-white dark:bg-slate-700 text-blue-600 dark:text-white border border-slate-200 dark:border-slate-600 shadow-sm'
-                  : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200'
-              }`}
-            >
-              <UserPlus className="w-3.5 h-3.5" />
-              Register
-            </button>
-          </div>
+          <motion.button
+            whileHover={{ scale: 1.02 }}
+            whileTap={{ scale: 0.98 }}
+            type="submit"
+            disabled={isSubmitting}
+            className="w-full mt-8 py-3.5 rounded-xl font-medium flex items-center justify-center gap-2 transition-colors disabled:opacity-70"
+            style={{ backgroundColor: 'var(--text-primary)', color: 'var(--bg-primary)' }}
+          >
+            {isSubmitting ? (
+              <Loader2 size={18} className="animate-spin" />
+            ) : (
+              <>
+                Sign In <ArrowRight size={18} />
+              </>
+            )}
+          </motion.button>
+        </form>
 
-          {/* Login Form */}
-          {activeTab === 'login' && (
-            <form className="space-y-4" onSubmit={handleLoginSubmit(onLoginSubmit)}>
-              <div>
-                <label className="label-premium">Email Address</label>
-                <input
-                  type="email"
-                  placeholder="name@college.edu"
-                  className="input-premium"
-                  {...registerLogin('email', { required: 'Email is required' })}
-                />
-                {loginErrors.email && (
-                  <p className="mt-1.5 text-[11px] font-semibold text-rose-400">{loginErrors.email.message}</p>
-                )}
-              </div>
-              <div>
-                <label className="label-premium">Password</label>
-                <input
-                  type="password"
-                  placeholder="••••••••"
-                  className="input-premium"
-                  {...registerLogin('password', { required: 'Password is required' })}
-                />
-                {loginErrors.password && (
-                  <p className="mt-1.5 text-[11px] font-semibold text-rose-400">{loginErrors.password.message}</p>
-                )}
-              </div>
-              <button
-                type="submit"
-                disabled={loading}
-                className="btn-primary w-full justify-center py-3 text-sm mt-2 disabled:opacity-50"
-              >
-                {loading ? <Spinner size="sm" /> : 'Access Dashboard'}
-              </button>
-            </form>
-          )}
-
-          {/* Register Form */}
-          {activeTab === 'register' && (
-            <form className="space-y-3" onSubmit={handleSignUpSubmit(onSignUpSubmit)}>
-              <div className="grid grid-cols-2 gap-3">
-                <div>
-                  <label className="label-premium">Full Name</label>
-                  <input
-                    type="text"
-                    placeholder="Rahul Sharma"
-                    className="input-premium text-sm"
-                    {...registerSignUp('name', { required: 'Name is required' })}
-                  />
-                  {signUpErrors.name && <p className="mt-1 text-[10px] text-rose-400">{signUpErrors.name.message}</p>}
-                </div>
-                <div>
-                  <label className="label-premium">WhatsApp Phone</label>
-                  <input
-                    type="text"
-                    placeholder="+919876543210"
-                    className="input-premium text-sm"
-                    {...registerSignUp('phone', {
-                      required: 'Phone required',
-                      pattern: { value: /^\+[1-9]\d{9,14}$/, message: 'Format: +91XXXXXXXXXX' },
-                    })}
-                  />
-                  {signUpErrors.phone && <p className="mt-1 text-[10px] text-rose-400">{signUpErrors.phone.message}</p>}
-                </div>
-              </div>
-
-              <div className="grid grid-cols-2 gap-3">
-                <div>
-                  <label className="label-premium">Branch</label>
-                  <select
-                    className="input-premium text-sm"
-                    style={{ colorScheme: 'dark' }}
-                    {...registerSignUp('branch', { required: 'Branch required' })}
-                  >
-                    <option value="" style={{ background: '#0F1629' }}>Select</option>
-                    <option value="CSE" style={{ background: '#0F1629' }}>CSE</option>
-                    <option value="ECE" style={{ background: '#0F1629' }}>ECE</option>
-                    <option value="EEE" style={{ background: '#0F1629' }}>EEE</option>
-                    <option value="ME" style={{ background: '#0F1629' }}>Mechanical</option>
-                    <option value="CE" style={{ background: '#0F1629' }}>Civil</option>
-                    <option value="IT" style={{ background: '#0F1629' }}>IT</option>
-                  </select>
-                  {signUpErrors.branch && <p className="mt-1 text-[10px] text-rose-400">{signUpErrors.branch.message}</p>}
-                </div>
-                <div>
-                  <label className="label-premium">Year</label>
-                  <select
-                    className="input-premium text-sm"
-                    style={{ colorScheme: 'dark' }}
-                    {...registerSignUp('year', { required: 'Year required' })}
-                  >
-                    <option value="" style={{ background: '#0F1629' }}>Select</option>
-                    {[1,2,3,4].map(y => (
-                      <option key={y} value={y} style={{ background: '#0F1629' }}>{y}{['st','nd','rd','th'][y-1]} Year</option>
-                    ))}
-                  </select>
-                  {signUpErrors.year && <p className="mt-1 text-[10px] text-rose-400">{signUpErrors.year.message}</p>}
-                </div>
-              </div>
-
-              <div>
-                <label className="label-premium">Subjects (comma separated)</label>
-                <input
-                  type="text"
-                  placeholder="DBMS, OS, CN, DSA"
-                  className="input-premium text-sm"
-                  {...registerSignUp('subjects', { required: 'Add subjects' })}
-                />
-                {signUpErrors.subjects && <p className="mt-1 text-[10px] text-rose-400">{signUpErrors.subjects.message}</p>}
-              </div>
-
-              <div>
-                <label className="label-premium">Email</label>
-                <input
-                  type="email"
-                  placeholder="name@college.edu"
-                  className="input-premium text-sm"
-                  {...registerSignUp('email', { required: 'Email required' })}
-                />
-                {signUpErrors.email && <p className="mt-1 text-[10px] text-rose-400">{signUpErrors.email.message}</p>}
-              </div>
-
-              <div>
-                <label className="label-premium">Google Email (Optional — Calendar)</label>
-                <input
-                  type="email"
-                  placeholder="name@gmail.com"
-                  className="input-premium text-sm"
-                  {...registerSignUp('google_email')}
-                />
-              </div>
-
-              <div>
-                <label className="label-premium">Password</label>
-                <input
-                  type="password"
-                  placeholder="Min 6 characters"
-                  className="input-premium text-sm"
-                  {...registerSignUp('password', {
-                    required: 'Password required',
-                    minLength: { value: 6, message: 'Min 6 characters' },
-                  })}
-                />
-                {signUpErrors.password && <p className="mt-1 text-[10px] text-rose-400">{signUpErrors.password.message}</p>}
-              </div>
-
-              <button
-                type="submit"
-                disabled={loading}
-                className="btn-primary w-full justify-center py-3 text-sm mt-1 disabled:opacity-50"
-              >
-                {loading ? <Spinner size="sm" /> : 'Create Account & Register'}
-              </button>
-            </form>
-          )}
+        <div className="mt-8 text-center">
+          <p className="text-sm text-secondary">
+            Don't have an account?{' '}
+            <Link to="/register" className="font-medium hover:underline" style={{ color: 'var(--accent-primary)' }}>
+              Create one
+            </Link>
+          </p>
         </div>
-      </div>
+      </motion.div>
     </div>
   );
 }

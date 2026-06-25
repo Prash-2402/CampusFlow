@@ -5,7 +5,7 @@ import { useAI } from '../hooks/useAI';
 import AttendanceAlert from '../components/ai/AttendanceAlert';
 import Spinner from '../components/ui/Spinner';
 import toast from 'react-hot-toast';
-import { CalendarCheck, ShieldAlert, Award, BarChart2 } from 'lucide-react';
+import { CalendarCheck, ShieldAlert, Award, AlertCircle } from 'lucide-react';
 
 export default function AttendancePage() {
   const { user } = useAuth();
@@ -17,108 +17,114 @@ export default function AttendancePage() {
   const {
     register,
     handleSubmit,
-    formState: { errors },
+    watch,
+    formState: { errors }
   } = useForm();
 
   const onSubmit = async (data) => {
-    const attendanceData = subjects.map((subject, idx) => ({
-      subject,
-      attended: parseInt(data[`attended_${idx}`], 10),
-      total: parseInt(data[`total_${idx}`], 10),
-    }));
+    // Compile attendance inputs into structured objects
+    const attendanceData = subjects.map((subject, idx) => {
+      const attended = parseInt(data[`attended_${idx}`], 10);
+      const total = parseInt(data[`total_${idx}`], 10);
+      return { subject, attended, total };
+    });
 
-    const invalid = attendanceData.find(item => item.attended > item.total);
-    if (invalid) {
-      toast.error(`Attended cannot exceed total for ${invalid.subject}.`);
+    // Client-side cross field validation check
+    const invalidSubject = attendanceData.find(item => item.attended > item.total);
+    if (invalidSubject) {
+      toast.error(`Classes attended cannot exceed total classes for ${invalidSubject.subject}.`);
       return;
     }
 
     try {
       const result = await checkAttendanceRisk(attendanceData);
       setAnalysisResult(result);
-      toast.success('Attendance analysis complete! 📊');
+      toast.success('Attendance risk analysis complete! 📊');
     } catch (err) {
-      // handled in hook
+      // Errors handled in hooks
     }
   };
 
   return (
-    <div className="space-y-6 pb-24 md:pb-6 animate-slide-up">
-
+    <div className="space-y-6 pb-24 md:pb-6">
+      
       {/* Header */}
-      <div className="flex items-center gap-3 mb-2">
-        <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-blue-500/20 to-indigo-600/20 border border-blue-500/25 flex items-center justify-center">
-          <CalendarCheck className="w-5 h-5 text-blue-400" />
-        </div>
-        <div>
-          <h1 className="text-2xl font-extrabold text-white tracking-tight">Attendance Risk</h1>
-          <p className="text-sm text-white/35 mt-0.5">
-            Calculate subject-wise risk against the 75% B.Tech threshold.
-          </p>
-        </div>
+      <div>
+        <h1 className="text-3xl font-extrabold tracking-tight text-gray-900 dark:text-white flex items-center gap-2">
+          <CalendarCheck className="w-8 h-8 text-blue-600 dark:text-blue-400" />
+          Attendance Risk Alerter
+        </h1>
+        <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
+          Input your attendance numbers to calculate risk parameters and AI actions for B.Tech rules (75% threshold).
+        </p>
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 items-start">
-
-        {/* Form Panel */}
-        <div className="glass-card p-6">
-          <div className="section-header">
-            <ShieldAlert className="section-header-icon" />
+        
+        {/* Dynamic Form Panel */}
+        <div className="bg-white dark:bg-gray-800 rounded-3xl border border-gray-200 dark:border-gray-700/60 p-6 shadow-sm">
+          <h2 className="text-base font-bold text-gray-900 dark:text-white mb-4 flex items-center gap-2">
+            <ShieldAlert className="w-5 h-5 text-blue-600" />
             Enter Attendance Records
-          </div>
+          </h2>
 
           {subjects.length === 0 ? (
-            <div className="py-10 text-center">
-              <p className="text-sm text-white/35 leading-relaxed">
-                No subjects configured. Re-register with active subjects.
+            <div className="text-center py-6">
+              <p className="text-xs text-gray-500 dark:text-gray-400">
+                Please configure tracked subjects by logging out and registering with active subjects.
               </p>
             </div>
           ) : (
-            <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
-              <div className="space-y-3 max-h-[350px] overflow-y-auto pr-1">
+            <form onSubmit={handleSubmit(onSubmit)} className="space-y-5">
+              <div className="space-y-4 max-h-[350px] overflow-y-auto pr-1">
                 {subjects.map((subject, idx) => {
+                  // Setup field validations
                   const attendedName = `attended_${idx}`;
                   const totalName = `total_${idx}`;
+                  
                   return (
-                    <div
-                      key={subject}
-                      className="p-4 bg-white/[0.03] border border-white/[0.06] rounded-xl flex flex-col md:flex-row md:items-center justify-between gap-3"
+                    <div 
+                      key={subject} 
+                      className="p-4 bg-gray-50/50 dark:bg-gray-900/30 border border-gray-200 dark:border-gray-750 rounded-2xl flex flex-col md:flex-row md:items-center justify-between gap-4"
                     >
-                      <span className="text-sm font-semibold text-white/75 md:max-w-[160px] truncate">
+                      <span className="text-sm font-bold text-gray-900 dark:text-gray-150 md:max-w-[150px] truncate">
                         {subject}
                       </span>
-                      <div className="flex items-center gap-2">
+                      
+                      <div className="flex items-center gap-3">
                         <div className="w-24">
                           <input
                             type="number"
                             placeholder="Attended"
                             min="0"
-                            className="input-premium text-center text-xs py-2 px-2"
+                            className="w-full px-3 py-1.5 rounded-xl border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-800 text-sm font-bold text-center"
                             {...register(attendedName, {
                               required: 'Required',
-                              min: { value: 0, message: '≥ 0' },
+                              min: { value: 0, message: 'Must be >= 0' }
                             })}
                           />
                           {errors[attendedName] && (
-                            <p className="text-[10px] text-rose-400 text-center mt-1">
+                            <p className="text-[10px] font-bold text-red-500 text-center mt-1">
                               {errors[attendedName].message}
                             </p>
                           )}
                         </div>
-                        <span className="text-white/20 font-bold text-xs">/</span>
+
+                        <span className="text-xs text-gray-400 font-extrabold">/</span>
+
                         <div className="w-24">
                           <input
                             type="number"
                             placeholder="Total"
                             min="1"
-                            className="input-premium text-center text-xs py-2 px-2"
+                            className="w-full px-3 py-1.5 rounded-xl border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-800 text-sm font-bold text-center"
                             {...register(totalName, {
                               required: 'Required',
-                              min: { value: 1, message: '≥ 1' },
+                              min: { value: 1, message: 'Must be >= 1' }
                             })}
                           />
                           {errors[totalName] && (
-                            <p className="text-[10px] text-rose-400 text-center mt-1">
+                            <p className="text-[10px] font-bold text-red-500 text-center mt-1">
                               {errors[totalName].message}
                             </p>
                           )}
@@ -132,9 +138,9 @@ export default function AttendancePage() {
               <button
                 type="submit"
                 disabled={loading}
-                className="btn-primary w-full justify-center disabled:opacity-50"
+                className="w-full py-3 bg-blue-650 hover:bg-blue-700 text-white rounded-xl font-bold text-sm shadow transition flex items-center justify-center gap-2 cursor-pointer disabled:opacity-50"
               >
-                {loading ? <Spinner size="sm" /> : <><BarChart2 className="w-4 h-4" /> Analyze Risk</>}
+                {loading ? <Spinner size="sm" /> : 'Analyze Risk'}
               </button>
             </form>
           )}
@@ -143,23 +149,23 @@ export default function AttendancePage() {
         {/* Results Panel */}
         <div>
           {analysisResult ? (
-            <AttendanceAlert
+            <AttendanceAlert 
               alerts={analysisResult.alerts}
               overallTip={analysisResult.overallTip}
             />
           ) : (
-            <div className="glass-card p-10 text-center min-h-[300px] flex flex-col justify-center items-center border-dashed">
-              <div className="w-14 h-14 rounded-2xl bg-white/[0.03] border border-white/[0.07] flex items-center justify-center mb-4">
-                <Award className="w-7 h-7 text-white/15" />
-              </div>
-              <p className="text-sm font-medium text-white/30 max-w-xs leading-relaxed">
-                Enter your attendance numbers and click Analyze Risk to see your subject-wise safety.
+            /* Ground truth requested empty state for attendance page before analyze */
+            <div className="p-8 text-center border border-dashed border-gray-250 dark:border-gray-750 bg-white/50 dark:bg-gray-800/30 rounded-3xl min-h-[300px] flex flex-col justify-center items-center">
+              <Award className="w-12 h-12 text-gray-300 dark:text-gray-655 mb-3" />
+              <p className="text-sm font-semibold text-gray-500 dark:text-gray-400 max-w-xs leading-relaxed">
+                Enter your attendance numbers above and click Analyze Risk.
               </p>
             </div>
           )}
         </div>
 
       </div>
+
     </div>
   );
 }
