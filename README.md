@@ -159,3 +159,15 @@ The application relies on n8n webhooks to automate WhatsApp alerts (via Twilio) 
 - **POST** `/api/ai/flashcards` (body: `{ notes }`)
 - **POST** `/api/ai/attendance` (body: `{ attendanceData }`)
 - **POST** `/api/ai/mcq` (body: `{ notes, subject, topic, count? }`)
+
+---
+
+## Troubleshooting
+
+### 1. `Error triggering n8n ... webhook: Request failed with status code 404`
+*   **Cause**: This happens when the backend attempts to send a webhook request to the placeholder URL configured in your `backend/.env` file (`https://your-n8n.app.n8n.cloud/webhook/...`), or if the workflow is not set to **Active** inside n8n.
+*   **Solution**:
+    1. Replace `https://your-n8n.app.n8n.cloud` in `backend/.env` with your actual n8n cloud or local host URL (e.g. `https://prajwal-vl.app.n8n.cloud`).
+    2. Ensure that you have toggled the workflow to **Active** inside your n8n dashboard.
+    3. **For Local Testing/Development**: If you are clicking "Listen for test event" in n8n, n8n changes the path from `/webhook/` to `/webhook-test/`. Temporarily update the URLs in your `backend/.env` file to use `/webhook-test/` (e.g., `https://prajwal-vl.app.n8n.cloud/webhook-test/deadline`). Remember to switch back to `/webhook/` once you activate the workflow for production.
+
