@@ -4,6 +4,8 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { Sparkles, Calendar, BookOpen, AlertCircle, Clock, CheckCircle2, ChevronDown, MessageCircle, ArrowRight, Activity, Flame, CheckSquare } from 'lucide-react';
 import toast from 'react-hot-toast';
 import Tilt from 'react-parallax-tilt';
+import { useAuth } from '../context/AuthContext';
+import api from '../api/axios';
 
 // ----------------------------------------
 // Custom Toast: WhatsApp Notification
@@ -39,14 +41,13 @@ const triggerWhatsAppToast = () => {
 // Bento Box Components
 // ----------------------------------------
 
-const CopilotHeader = () => (
+const CopilotHeader = ({ user, tasksCount }) => (
   <motion.div 
     variants={{ hidden: { opacity: 0, y: 20 }, visible: { opacity: 1, y: 0 } }}
     className="col-span-1 md:col-span-3 lg:col-span-4"
   >
     <Tilt tiltMaxAngleX={2} tiltMaxAngleY={2} scale={1.01} transitionSpeed={2000} className="h-full">
       <div className="h-full bg-gradient-to-br from-accentPrimary/10 via-surface/80 to-surface/40 backdrop-blur-xl border border-white/10 rounded-[2rem] p-8 relative overflow-hidden group shadow-[0_8px_32px_rgba(0,0,0,0.05)]">
-    {/* Animated background blur */}
     <div className="absolute top-0 right-0 w-96 h-96 bg-accentPrimary/10 rounded-full blur-[100px] pointer-events-none group-hover:bg-accentPrimary/20 transition-colors duration-700" />
     <div className="absolute -bottom-20 -left-20 w-64 h-64 bg-accentSecondary/10 rounded-full blur-[80px] pointer-events-none" />
     
@@ -61,9 +62,9 @@ const CopilotHeader = () => (
           </div>
         </div>
         <div>
-          <h2 className="text-3xl font-semibold mb-1 tracking-tight">Good morning, Prajwal</h2>
+          <h2 className="text-3xl font-semibold mb-1 tracking-tight">Good morning, {user?.name ? user.name.split(' ')[0] : 'Student'}</h2>
           <p className="text-textSecondary text-lg font-light max-w-xl leading-relaxed">
-            You have <span className="text-primary font-medium">2 assignments</span> due this week. Based on your schedule, I recommend studying DBMS tonight.
+            You have <span className="text-primary font-medium">{tasksCount} pending tasks</span>. Check your upcoming deadlines below!
           </p>
         </div>
       </div>
@@ -114,7 +115,9 @@ const MetricBento = ({ title, value, subtext, icon: Icon, trend }) => (
   </motion.div>
 );
 
-const UpcomingDeadlineBento = () => {
+const UpcomingDeadlineBento = ({ tasks }) => {
+  const nextTask = tasks && tasks.length > 0 ? tasks[0] : null;
+
   return (
     <motion.div 
       variants={{ hidden: { opacity: 0, y: 20 }, visible: { opacity: 1, y: 0 } }}
@@ -132,16 +135,16 @@ const UpcomingDeadlineBento = () => {
             </div>
             <h3 className="font-semibold text-lg tracking-tight">Priority Deadline</h3>
           </div>
-          <span className="text-xs font-bold uppercase tracking-wider text-accentPrimary bg-accentPrimary/10 px-3 py-1.5 rounded-full">Due in 2 days</span>
+          {nextTask && <span className="text-xs font-bold uppercase tracking-wider text-accentPrimary bg-accentPrimary/10 px-3 py-1.5 rounded-full">Upcoming</span>}
         </div>
 
         <div className="flex-1 flex flex-col justify-center items-center text-center px-4">
           <div className="w-20 h-20 bg-primary border border-borderColor rounded-2xl shadow-xl shadow-black/5 flex items-center justify-center mb-6 transform -rotate-6 group-hover:rotate-0 transition-transform duration-500">
             <BookOpen size={32} className="text-accentPrimary" />
           </div>
-          <h4 className="text-2xl font-bold mb-2">DBMS Assignment 3</h4>
+          <h4 className="text-2xl font-bold mb-2">{nextTask ? nextTask.title : 'No Upcoming Tasks'}</h4>
           <p className="text-sm text-textSecondary max-w-sm mx-auto leading-relaxed mb-6">
-            SQL Query Optimization and Normalization practices. 
+            {nextTask ? `Subject: ${nextTask.subject}` : 'You are all caught up! Enjoy your free time.'}
           </p>
           
           <div className="w-full bg-primary border border-borderColor rounded-xl p-4 text-left flex items-start gap-3 mt-auto">
@@ -275,6 +278,27 @@ const ActivityStreamBento = () => {
 
 
 export default function DashboardPage() {
+  const { user } = useAuth();
+  const [tasks, setTasks] = useState([]);
+  const [loadingTasks, setLoadingTasks] = useState(true);
+
+  useEffect(() => {
+    const fetchTasks = async () => {
+      try {
+        const response = await api.get('/api/tasks');
+        const pendingTasks = (response.data.tasks || []).filter(t => t.status === 'pending');
+        setTasks(pendingTasks);
+      } catch (err) {
+        console.error('Failed to fetch tasks', err);
+      } finally {
+        setLoadingTasks(false);
+      }
+    };
+    if (user) {
+      fetchTasks();
+    }
+  }, [user]);
+
   return (
     <AppLayout>
       <div className="pb-12 pt-4">
@@ -289,14 +313,14 @@ export default function DashboardPage() {
         >
           
           {/* Top Banner */}
-          <CopilotHeader />
+          <CopilotHeader user={user} tasksCount={tasks.length} />
 
           {/* Metrics */}
-          <MetricBento title="Tasks Due" value="3" subtext="2 High Priority" icon={CheckSquare} delay={0.1} trend="URGENT" />
+          <MetricBento title="Tasks Due" value={loadingTasks ? '-' : tasks.length} subtext="Pending Assignments" icon={CheckSquare} delay={0.1} trend={tasks.length > 0 ? "URGENT" : null} />
           <MetricBento title="Exam Countdown" value="14" subtext="Midterms in 2 weeks" icon={Calendar} delay={0.15} />
           
           {/* Main Content Area */}
-          <UpcomingDeadlineBento />
+          <UpcomingDeadlineBento tasks={tasks} />
           <ScheduleBento />
 
           {/* Bottom Stream */}

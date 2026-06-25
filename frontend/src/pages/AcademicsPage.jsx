@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import AppLayout from '../components/layout/AppLayout';
 import { motion, AnimatePresence } from 'framer-motion';
 import Tilt from 'react-parallax-tilt';
@@ -7,76 +7,55 @@ import {
   UploadCloud, Search, FileText, Users, BarChart3, Plus, Play,
   MoreVertical, RefreshCw, Sparkles, SearchCode, X
 } from 'lucide-react';
+import api from '../api/axios';
 
 const tabs = ['Tasks', 'Study', 'Attendance', 'Knowledge', 'Groups'];
 
-const TasksTab = () => (
-  <div className="grid grid-cols-1 md:grid-cols-3 gap-6 w-full">
-    {/* Kanban Columns */}
-    {['To Do', 'In Progress', 'Completed'].map((status, i) => (
-      <div key={status} className="bg-surface/30 backdrop-blur-md border border-borderColor rounded-3xl p-6">
-        <div className="flex items-center justify-between mb-6">
-          <h3 className="font-semibold">{status}</h3>
-          <span className="bg-surface border border-borderColor text-xs px-2 py-1 rounded-md">{i === 0 ? 3 : i === 1 ? 1 : 12}</span>
-        </div>
-        
-        <div className="space-y-4">
-          {/* Sample Task Card */}
-          {i === 0 && (
-            <Tilt tiltMaxAngleX={2} tiltMaxAngleY={2} className="w-full">
-              <div className="bg-primary border border-borderColor p-4 rounded-2xl shadow-sm group hover:border-accentPrimary/50 transition-colors">
-                <div className="flex justify-between items-start mb-2">
-                  <span className="text-[10px] uppercase font-bold tracking-wider text-accentPrimary bg-accentPrimary/10 px-2 py-0.5 rounded">DBMS</span>
-                  <button className="text-textSecondary hover:text-primary"><MoreVertical size={14}/></button>
-                </div>
-                <h4 className="text-sm font-medium mb-3">Assignment 3: Normalization</h4>
-                <div className="flex items-center justify-between text-xs text-textSecondary">
-                  <span className="flex items-center gap-1 text-red-400"><Clock size={12}/> Tomorrow</span>
-                  <div className="flex -space-x-2">
-                    <div className="w-5 h-5 rounded-full bg-accentPrimary/20 border border-surface flex items-center justify-center text-[8px] font-bold text-accentPrimary">AI</div>
+const TasksTab = ({ tasks }) => {
+  const todoTasks = tasks.filter(t => t.status === 'pending');
+  const doneTasks = tasks.filter(t => t.status === 'done');
+
+  return (
+    <div className="grid grid-cols-1 md:grid-cols-3 gap-6 w-full">
+      {/* Kanban Columns */}
+      {[
+        { title: 'To Do', count: todoTasks.length, items: todoTasks },
+        { title: 'In Progress', count: 0, items: [] },
+        { title: 'Completed', count: doneTasks.length, items: doneTasks }
+      ].map((column, i) => (
+        <div key={column.title} className="bg-surface/30 backdrop-blur-md border border-borderColor rounded-3xl p-6">
+          <div className="flex items-center justify-between mb-6">
+            <h3 className="font-semibold">{column.title}</h3>
+            <span className="bg-surface border border-borderColor text-xs px-2 py-1 rounded-md">{column.count}</span>
+          </div>
+          
+          <div className="space-y-4">
+            {column.items.map((task, idx) => (
+              <Tilt key={idx} tiltMaxAngleX={2} tiltMaxAngleY={2} className="w-full">
+                <div className="bg-primary border border-borderColor p-4 rounded-2xl shadow-sm group hover:border-accentPrimary/50 transition-colors">
+                  <div className="flex justify-between items-start mb-2">
+                    <span className="text-[10px] uppercase font-bold tracking-wider text-accentPrimary bg-accentPrimary/10 px-2 py-0.5 rounded">{task.subject}</span>
+                    <button className="text-textSecondary hover:text-primary"><MoreVertical size={14}/></button>
+                  </div>
+                  <h4 className="text-sm font-medium mb-3">{task.title}</h4>
+                  <div className="flex items-center justify-between text-xs text-textSecondary">
+                    <span className="flex items-center gap-1 text-red-400"><Clock size={12}/> {new Date(task.deadline).toLocaleDateString()}</span>
                   </div>
                 </div>
-              </div>
-            </Tilt>
-          )}
-          {i === 0 && (
-            <Tilt tiltMaxAngleX={2} tiltMaxAngleY={2} className="w-full">
-              <div className="bg-primary border border-borderColor p-4 rounded-2xl shadow-sm group hover:border-accentPrimary/50 transition-colors">
-                <div className="flex justify-between items-start mb-2">
-                  <span className="text-[10px] uppercase font-bold tracking-wider text-blue-500 bg-blue-500/10 px-2 py-0.5 rounded">OS</span>
-                  <button className="text-textSecondary hover:text-primary"><MoreVertical size={14}/></button>
-                </div>
-                <h4 className="text-sm font-medium mb-3">Read Chapter 4</h4>
-                <div className="flex items-center justify-between text-xs text-textSecondary">
-                  <span className="flex items-center gap-1"><Calendar size={12}/> 14th Oct</span>
-                </div>
-              </div>
-            </Tilt>
-          )}
-          {i === 1 && (
-            <Tilt tiltMaxAngleX={2} tiltMaxAngleY={2} className="w-full">
-              <div className="bg-primary border border-borderColor p-4 rounded-2xl shadow-sm group hover:border-accentPrimary/50 transition-colors">
-                <div className="flex justify-between items-start mb-2">
-                  <span className="text-[10px] uppercase font-bold tracking-wider text-purple-500 bg-purple-500/10 px-2 py-0.5 rounded">Project</span>
-                  <button className="text-textSecondary hover:text-primary"><MoreVertical size={14}/></button>
-                </div>
-                <h4 className="text-sm font-medium mb-3">Frontend UI Shells</h4>
-                <div className="flex items-center justify-between text-xs text-textSecondary">
-                  <span className="flex items-center gap-1"><Clock size={12}/> In Progress</span>
-                  <div className="w-full max-w-[60px] bg-surface h-1.5 rounded-full overflow-hidden ml-2"><div className="bg-purple-500 h-full w-[60%]" /></div>
-                </div>
-              </div>
-            </Tilt>
-          )}
-          
-          <button className="w-full py-3 rounded-xl border border-dashed border-borderColor text-textSecondary text-sm font-medium hover:border-accentPrimary hover:text-accentPrimary transition-colors flex items-center justify-center gap-2">
-            <Plus size={16} /> Add Task
-          </button>
+              </Tilt>
+            ))}
+            
+            {i === 0 && (
+              <button className="w-full py-3 rounded-xl border border-dashed border-borderColor text-textSecondary text-sm font-medium hover:border-accentPrimary hover:text-accentPrimary transition-colors flex items-center justify-center gap-2">
+                <Plus size={16} /> Add Task
+              </button>
+            )}
+          </div>
         </div>
-      </div>
-    ))}
-  </div>
-);
+      ))}
+    </div>
+  );
+};
 
 const StudyTab = () => (
   <div className="w-full grid grid-cols-1 lg:grid-cols-3 gap-6">
@@ -266,6 +245,19 @@ const GroupsTab = () => (
 
 export default function AcademicsPage() {
   const [activeTab, setActiveTab] = useState('Tasks');
+  const [tasks, setTasks] = useState([]);
+
+  useEffect(() => {
+    const fetchTasks = async () => {
+      try {
+        const response = await api.get('/api/tasks');
+        setTasks(response.data.tasks || []);
+      } catch (err) {
+        console.error('Failed to fetch tasks', err);
+      }
+    };
+    fetchTasks();
+  }, []);
 
   return (
     <AppLayout>
@@ -309,7 +301,7 @@ export default function AcademicsPage() {
             transition={{ duration: 0.3, type: "spring", bounce: 0 }}
             className="w-full"
           >
-            {activeTab === 'Tasks' && <TasksTab />}
+            {activeTab === 'Tasks' && <TasksTab tasks={tasks} />}
             {activeTab === 'Study' && <StudyTab />}
             {activeTab === 'Attendance' && <AttendanceTab />}
             {activeTab === 'Knowledge' && <KnowledgeTab />}
